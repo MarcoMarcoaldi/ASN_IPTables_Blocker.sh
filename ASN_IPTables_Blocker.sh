@@ -34,22 +34,22 @@ printf "\n";
 
 if ! command -v whois &> /dev/null
 then
-    echo "Errore: command whois not found."
+    echo "Error: command whois not found."
     echo "please install using yum, dnf or apt or similar."
     exit 1
 fi
 
 
-# Nome dello script
+# Name of the script
 SCRIPT_NAME="ASN_IPTables_Blocker.sh"
 
-# Funzione per mostrare la sintassi di utilizzo
+# Function to show the usage syntax
 usage() {
     echo "Usage: $SCRIPT_NAME <ASN>"
     echo "Example: $SCRIPT_NAME 12345"
 }
 
-# Controllo se l'argomento ASN è stato passato
+# I check if the ASN argument has been passed
 if [ $# -ne 1 ]; then
     echo "Error: Wrong Argument number."
     usage
@@ -58,23 +58,23 @@ fi
 
 ASN=$1
 
-# Verifica che l'ASN sia un numero
+# Verify that the ASN is a number
 if ! [[ $ASN =~ ^[0-9]+$ ]]; then
     echo "Error: Wrong ASN parameter. Only number are accepted without AS prefix."
     usage
     exit 1
 fi
 
-# Ottenere i prefissi IP associati all'ASN
+# Get the IP prefixes associated with the ASN
 PREFIXES=$(whois -h whois.radb.net -- "-i origin AS$ASN" | grep -E '^(route|route6):' | awk '{print $2}')
 
-# Verifica se sono stati trovati prefissi IP
+# Check if IP prefixes have been found
 if [ -z "$PREFIXES" ]; then
     echo "No IP prefix found for ASN $ASN."
     exit 1
 fi
 
-# Bloccare ciascun prefisso IP utilizzando iptables e ip6tables
+# Block each IP prefix using iptables and ip6tables
 for prefix in $PREFIXES; do
     if [[ $prefix == *":"* ]]; then
         ip6tables -A INPUT -s "$prefix" -j DROP
